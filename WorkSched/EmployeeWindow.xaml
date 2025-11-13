@@ -1,0 +1,56 @@
+<Window x:Class="WorkSched.EmployeeWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Сотрудник" Height="520" Width="860" WindowStartupLocation="CenterScreen">
+  <TabControl>
+    <TabItem Header="Сегодня">
+      <Grid Margin="12">
+        <Grid.RowDefinitions>
+          <RowDefinition Height="Auto"/>
+          <RowDefinition Height="Auto"/>
+          <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <StackPanel Orientation="Horizontal" Grid.Row="0" Margin="0,0,0,8">
+          <TextBlock Text="Сегодня:" FontSize="16" FontWeight="Bold" Margin="0,0,16,0"/>
+          <TextBlock x:Name="txtTodayPlan"/>
+        </StackPanel>
+
+        <StackPanel Orientation="Horizontal" Grid.Row="1" Margin="0,0,0,12">
+          <Button Content="Отметиться (Check-in)" Width="180" Margin="0,0,8,0" Click="OnCheckIn"/>
+          <Button Content="Уйти (Check-out)" Width="160" Click="OnCheckOut"/>
+          <TextBlock x:Name="txtTodayInfo" Margin="16,0,0,0" VerticalAlignment="Center"/>
+        </StackPanel>
+
+        <TextBlock Grid.Row="2" Text="(Здесь позже появится мини-отчёт по последним явкам)" />
+      </Grid>
+    </TabItem>
+
+    <TabItem Header="Мои заявки">
+      <DockPanel>
+        <StackPanel Orientation="Horizontal" DockPanel.Dock="Top" Margin="8">
+          <ComboBox x:Name="cbLeaveType" Width="140" Margin="0,0,8,0">
+            <ComboBoxItem Content="Vacation"/>
+            <ComboBoxItem Content="Sick"/>
+            <ComboBoxItem Content="Personal"/>
+          </ComboBox>
+          <DatePicker x:Name="dpStart" Margin="0,0,8,0"/>
+          <DatePicker x:Name="dpEnd" Margin="0,0,8,0"/>
+          <TextBox x:Name="tbReason" Width="200" Margin="0,0,8,0" ToolTip="Причина (необязательно)"/>
+          <Button Content="Подать" Width="100" Click="OnLeaveSubmit"/>
+        </StackPanel>
+
+        <DataGrid x:Name="gridMyLeaves" AutoGenerateColumns="False" Margin="8" IsReadOnly="True">
+          <DataGrid.Columns>
+            <DataGridTextColumn Header="ID" Binding="{Binding LeaveId}" Width="60"/>
+            <DataGridTextColumn Header="Тип" Binding="{Binding Type}" Width="120"/>
+            <DataGridTextColumn Header="Статус" Binding="{Binding Status}" Width="120"/>
+            <DataGridTextColumn Header="С" Binding="{Binding StartDate}" Width="120"/>
+            <DataGridTextColumn Header="По" Binding="{Binding EndDate}" Width="120"/>
+            <DataGridTextColumn Header="Причина" Binding="{Binding Reason}" Width="*"/>
+          </DataGrid.Columns>
+        </DataGrid>
+      </DockPanel>
+    </TabItem>
+  </TabControl>
+</Window>
