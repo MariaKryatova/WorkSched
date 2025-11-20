@@ -1,82 +1,131 @@
 <Window x:Class="WorkSched.AdminPanelWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Админ-панель" Height="560" Width="940" WindowStartupLocation="CenterScreen">
-  <TabControl>
-    <TabItem Header="Пользователи">
-      <DockPanel>
-        <StackPanel Orientation="Horizontal" DockPanel.Dock="Top" Margin="8">
-          <Button Content="Обновить" Width="110" Margin="0,0,8,0" Click="OnUsersRefresh"/>
-          <Button Content="Удалить выбранных" Width="160" Margin="0,0,8,0" Click="OnUsersDelete"/>
-          <ComboBox x:Name="cbRole" Width="140" Margin="0,0,8,0">
-            <ComboBoxItem Content="Admin"/><ComboBoxItem Content="Manager"/><ComboBoxItem Content="Employee"/>
-          </ComboBox>
-          <Button Content="Поставить роль" Width="130" Margin="0,0,8,0" Click="OnUsersSetRole"/>
-          <Button Content="Сброс пароля → '1234'" Width="170" Click="OnUsersResetPwd"/>
-          <TextBlock x:Name="txtUsersInfo" Margin="16,0,0,0" VerticalAlignment="Center"/>
-        </StackPanel>
-        <DataGrid x:Name="gridUsers" AutoGenerateColumns="False" SelectionMode="Extended" SelectionUnit="FullRow"
-                  IsReadOnly="True" Margin="8">
-          <DataGrid.Columns>
-            <DataGridTextColumn Header="ID" Binding="{Binding EmployeeId}" Width="60"/>
-            <DataGridTextColumn Header="Логин" Binding="{Binding Login}" Width="*"/>
-            <DataGridTextColumn Header="ФИО" Binding="{Binding FullName}" Width="2*"/>
-            <DataGridTextColumn Header="Роль" Binding="{Binding Role}" Width="120"/>
-            <DataGridTextColumn Header="Отдел" Binding="{Binding Department}" Width="150"/>
-          </DataGrid.Columns>
-        </DataGrid>
-      </DockPanel>
-    </TabItem>
+        Title="Админ-панель" Height="560" Width="940" WindowStartupLocation="CenterScreen"
+        Background="#E6F3FF">
+    <TabControl Background="#F0F8FF">
+        <TabItem Header="Пользователи" Background="#D4EBF2">
+            <DockPanel Background="#FAFDFF">
+                <StackPanel Orientation="Horizontal" DockPanel.Dock="Top" Margin="8">
+                    <Button Content="Обновить" Width="110" Margin="0,0,8,0" Click="OnUsersRefresh" 
+                  Background="#D4EBF2" Foreground="#4A6572" BorderBrush="#B8D4E3"/>
+                    <Button Content="Удалить выбранных" Width="160" Margin="0,0,8,0" Click="OnUsersDelete"
+                  Background="#D4EBF2" Foreground="#4A6572" BorderBrush="#B8D4E3"/>
+                    <ComboBox x:Name="cbRole" Width="140" Margin="0,0,8,0"
+                    Background="White" Foreground="#4A6572" BorderBrush="#B8D4E3">
+                        <ComboBoxItem Content="Admin"/>
+                        <ComboBoxItem Content="Manager"/>
+                        <ComboBoxItem Content="Employee"/>
+                    </ComboBox>
+                    <Button Content="Поставить роль" Width="130" Margin="0,0,8,0" Click="OnUsersSetRole"
+                  Background="#D4EBF2" Foreground="#4A6572" BorderBrush="#B8D4E3"/>
+                    <Button Content="Сброс пароля → '1234'" Width="170" Click="OnUsersResetPwd"
+                  Background="#D4EBF2" Foreground="#4A6572" BorderBrush="#B8D4E3"/>
+                    <TextBlock x:Name="txtUsersInfo" Margin="16,0,0,0" VerticalAlignment="Center" Foreground="#4A6572"/>
+                </StackPanel>
+                <DataGrid x:Name="gridUsers" AutoGenerateColumns="False" SelectionMode="Extended" SelectionUnit="FullRow"
+                  IsReadOnly="True" Margin="8" Background="White" BorderBrush="#B8D4E3"
+                  Foreground="#4A6572" HeadersVisibility="Column">
+                    <DataGrid.ColumnHeaderStyle>
+                        <Style TargetType="DataGridColumnHeader">
+                            <Setter Property="Background" Value="#D4EBF2"/>
+                            <Setter Property="Foreground" Value="#4A6572"/>
+                            <Setter Property="BorderBrush" Value="#B8D4E3"/>
+                            <Setter Property="FontWeight" Value="SemiBold"/>
+                        </Style>
+                    </DataGrid.ColumnHeaderStyle>
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="ID" Binding="{Binding EmployeeId}" Width="60"/>
+                        <DataGridTextColumn Header="Логин" Binding="{Binding Login}" Width="*"/>
+                        <DataGridTextColumn Header="ФИО" Binding="{Binding FullName}" Width="2*"/>
+                        <DataGridTextColumn Header="Роль" Binding="{Binding Role}" Width="120"/>
+                        <DataGridTextColumn Header="Отдел" Binding="{Binding Department}" Width="150"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </DockPanel>
+        </TabItem>
 
-    <TabItem Header="Смены">
-      <DockPanel>
-        <Grid DockPanel.Dock="Top" Margin="8">
-          <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="2*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/>
-          </Grid.ColumnDefinitions>
-          <TextBox x:Name="tbShiftName" Margin="0,0,8,0" ToolTip="Название смены"/>
-          <TextBox x:Name="tbStart" Grid.Column="1" Margin="0,0,8,0" ToolTip="HH:mm" />
-          <TextBox x:Name="tbEnd" Grid.Column="2" Margin="0,0,8,0" ToolTip="HH:mm" />
-          <TextBox x:Name="tbBreak" Grid.Column="3" Margin="0,0,8,0" ToolTip="перерыв, мин"/>
-          <StackPanel Grid.Column="4" Orientation="Horizontal">
-            <Button Content="Добавить" Width="90" Margin="0,0,8,0" Click="OnShiftAdd"/>
-            <Button Content="Изменить" Width="90" Margin="0,0,8,0" Click="OnShiftUpdate"/>
-            <Button Content="Удалить" Width="90" Click="OnShiftDelete"/>
-          </StackPanel>
-        </Grid>
-        <DataGrid x:Name="gridShifts" AutoGenerateColumns="False" Margin="8" SelectionMode="Single" IsReadOnly="True"
-                  SelectionChanged="OnShiftSelectionChanged">
-          <DataGrid.Columns>
-            <DataGridTextColumn Header="ID" Binding="{Binding ShiftId}" Width="60"/>
-            <DataGridTextColumn Header="Название" Binding="{Binding Name}" Width="*"/>
-            <DataGridTextColumn Header="Начало" Binding="{Binding StartTime}" Width="120"/>
-            <DataGridTextColumn Header="Конец" Binding="{Binding EndTime}" Width="120"/>
-            <DataGridTextColumn Header="Перерыв, мин" Binding="{Binding BreakMinutes}" Width="120"/>
-          </DataGrid.Columns>
-        </DataGrid>
-      </DockPanel>
-    </TabItem>
+        <TabItem Header="Смены" Background="#D4EBF2">
+            <DockPanel Background="#FAFDFF">
+                <Grid DockPanel.Dock="Top" Margin="8">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="2*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBox x:Name="tbShiftName" Margin="0,0,8,0" ToolTip="Название смены"
+                   Background="White" Foreground="#4A6572" BorderBrush="#B8D4E3"/>
+                    <TextBox x:Name="tbStart" Grid.Column="1" Margin="0,0,8,0" ToolTip="HH:mm"
+                   Background="White" Foreground="#4A6572" BorderBrush="#B8D4E3"/>
+                    <TextBox x:Name="tbEnd" Grid.Column="2" Margin="0,0,8,0" ToolTip="HH:mm"
+                   Background="White" Foreground="#4A6572" BorderBrush="#B8D4E3"/>
+                    <TextBox x:Name="tbBreak" Grid.Column="3" Margin="0,0,8,0" ToolTip="перерыв, мин"
+                   Background="White" Foreground="#4A6572" BorderBrush="#B8D4E3"/>
+                    <StackPanel Grid.Column="4" Orientation="Horizontal">
+                        <Button Content="Добавить" Width="90" Margin="0,0,8,0" Click="OnShiftAdd"
+                    Background="#D4EBF2" Foreground="#4A6572" BorderBrush="#B8D4E3"/>
+                        <Button Content="Изменить" Width="90" Margin="0,0,8,0" Click="OnShiftUpdate"
+                    Background="#D4EBF2" Foreground="#4A6572" BorderBrush="#B8D4E3"/>
+                        <Button Content="Удалить" Width="90" Click="OnShiftDelete"
+                    Background="#D4EBF2" Foreground="#4A6572" BorderBrush="#B8D4E3"/>
+                    </StackPanel>
+                </Grid>
+                <DataGrid x:Name="gridShifts" AutoGenerateColumns="False" Margin="8" SelectionMode="Single" IsReadOnly="True"
+                  SelectionChanged="OnShiftSelectionChanged" Background="White" BorderBrush="#B8D4E3"
+                  Foreground="#4A6572" HeadersVisibility="Column">
+                    <DataGrid.ColumnHeaderStyle>
+                        <Style TargetType="DataGridColumnHeader">
+                            <Setter Property="Background" Value="#D4EBF2"/>
+                            <Setter Property="Foreground" Value="#4A6572"/>
+                            <Setter Property="BorderBrush" Value="#B8D4E3"/>
+                            <Setter Property="FontWeight" Value="SemiBold"/>
+                        </Style>
+                    </DataGrid.ColumnHeaderStyle>
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="ID" Binding="{Binding ShiftId}" Width="60"/>
+                        <DataGridTextColumn Header="Название" Binding="{Binding Name}" Width="*"/>
+                        <DataGridTextColumn Header="Начало" Binding="{Binding StartTime}" Width="120"/>
+                        <DataGridTextColumn Header="Конец" Binding="{Binding EndTime}" Width="120"/>
+                        <DataGridTextColumn Header="Перерыв, мин" Binding="{Binding BreakMinutes}" Width="120"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </DockPanel>
+        </TabItem>
 
-    <TabItem Header="Заявки (ожидают)">
-      <DockPanel>
-        <StackPanel Orientation="Horizontal" DockPanel.Dock="Top" Margin="8">
-          <Button Content="Обновить" Width="110" Margin="0,0,8,0" Click="OnLeavesRefresh"/>
-          <Button Content="Утвердить" Width="110" Margin="0,0,8,0" Click="OnLeavesApprove"/>
-          <Button Content="Отклонить" Width="110" Click="OnLeavesReject"/>
-          <TextBlock x:Name="txtLeavesInfo" Margin="16,0,0,0" VerticalAlignment="Center"/>
-        </StackPanel>
-        <DataGrid x:Name="gridLeaves" AutoGenerateColumns="False" SelectionMode="Extended" SelectionUnit="FullRow"
-                  IsReadOnly="True" Margin="8">
-          <DataGrid.Columns>
-            <DataGridTextColumn Header="ID" Binding="{Binding LeaveId}" Width="60"/>
-            <DataGridTextColumn Header="Сотр." Binding="{Binding FullName}" Width="2*"/>
-            <DataGridTextColumn Header="Тип" Binding="{Binding Type}" Width="120"/>
-            <DataGridTextColumn Header="С" Binding="{Binding StartDate}" Width="120"/>
-            <DataGridTextColumn Header="По" Binding="{Binding EndDate}" Width="120"/>
-            <DataGridTextColumn Header="Причина" Binding="{Binding Reason}" Width="2*"/>
-          </DataGrid.Columns>
-        </DataGrid>
-      </DockPanel>
-    </TabItem>
-  </TabControl>
+        <TabItem Header="Заявки (ожидают)" Background="#D4EBF2">
+            <DockPanel Background="#FAFDFF">
+                <StackPanel Orientation="Horizontal" DockPanel.Dock="Top" Margin="8">
+                    <Button Content="Обновить" Width="110" Margin="0,0,8,0" Click="OnLeavesRefresh"
+                  Background="#D4EBF2" Foreground="#4A6572" BorderBrush="#B8D4E3"/>
+                    <Button Content="Утвердить" Width="110" Margin="0,0,8,0" Click="OnLeavesApprove"
+                  Background="#D4EBF2" Foreground="#4A6572" BorderBrush="#B8D4E3"/>
+                    <Button Content="Отклонить" Width="110" Click="OnLeavesReject"
+                  Background="#D4EBF2" Foreground="#4A6572" BorderBrush="#B8D4E3"/>
+                    <TextBlock x:Name="txtLeavesInfo" Margin="16,0,0,0" VerticalAlignment="Center" Foreground="#4A6572"/>
+                </StackPanel>
+                <DataGrid x:Name="gridLeaves" AutoGenerateColumns="False" SelectionMode="Extended" SelectionUnit="FullRow"
+                  IsReadOnly="True" Margin="8" Background="White" BorderBrush="#B8D4E3"
+                  Foreground="#4A6572" HeadersVisibility="Column">
+                    <DataGrid.ColumnHeaderStyle>
+                        <Style TargetType="DataGridColumnHeader">
+                            <Setter Property="Background" Value="#D4EBF2"/>
+                            <Setter Property="Foreground" Value="#4A6572"/>
+                            <Setter Property="BorderBrush" Value="#B8D4E3"/>
+                            <Setter Property="FontWeight" Value="SemiBold"/>
+                        </Style>
+                    </DataGrid.ColumnHeaderStyle>
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="ID" Binding="{Binding LeaveId}" Width="60"/>
+                        <DataGridTextColumn Header="Сотр." Binding="{Binding FullName}" Width="2*"/>
+                        <DataGridTextColumn Header="Тип" Binding="{Binding Type}" Width="120"/>
+                        <DataGridTextColumn Header="С" Binding="{Binding StartDate}" Width="120"/>
+                        <DataGridTextColumn Header="По" Binding="{Binding EndDate}" Width="120"/>
+                        <DataGridTextColumn Header="Причина" Binding="{Binding Reason}" Width="2*"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </DockPanel>
+        </TabItem>
+    </TabControl>
 </Window>

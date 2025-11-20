@@ -1,24 +1,31 @@
 <Window x:Class="WorkSched.LoginWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Вход" Height="260" Width="380" WindowStartupLocation="CenterScreen">
-  <Grid Margin="16">
-    <Grid.RowDefinitions>
-      <RowDefinition Height="Auto"/>
-      <RowDefinition Height="Auto"/>
-      <RowDefinition Height="*"/>
-    </Grid.RowDefinitions>
+        Title="Вход" Height="260" Width="380" WindowStartupLocation="CenterScreen"
+        Background="#E6F3FF">
+    <Grid Margin="16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
 
-    <StackPanel>
-      <TextBlock Text="Логин"/>
-      <TextBox x:Name="txtLogin" Margin="0,4,0,10"/>
-      <TextBlock Text="Пароль"/>
-      <PasswordBox x:Name="pwd" Margin="0,4,0,0"/>
-    </StackPanel>
+        <StackPanel>
+            <TextBlock Text="Логин" Foreground="#4A6572" FontWeight="SemiBold"/>
+            <TextBox x:Name="txtLogin" Margin="0,4,0,10" Background="#FFFFFF" Foreground="#4A6572" 
+               BorderBrush="#B8D4E3" CaretBrush="#8BA888" Height="28" Padding="4"/>
+            <TextBlock Text="Пароль" Foreground="#4A6572" FontWeight="SemiBold"/>
+            <PasswordBox x:Name="pwd" Margin="0,4,0,0" Background="#FFFFFF" Foreground="#4A6572" 
+                   BorderBrush="#B8D4E3" Height="28" Padding="4"/>
+        </StackPanel>
 
-    <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,0,0">
-      <Button Content="Войти" Width="90" Margin="0,0,8,0" Click="OnLogin"/>
-      <Button Content="Регистрация" Width="110" Click="OnRegister"/>
-    </StackPanel>
-  </Grid>
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,0,0">
+            <Button Content="Войти" Width="90" Margin="0,0,8,0" Click="OnLogin" 
+              Background="#D4EBF2" Foreground="#4A6572" FontWeight="SemiBold" 
+              BorderBrush="#B8D4E3" BorderThickness="1" Height="32"/>
+            <Button Content="Регистрация" Width="110" Click="OnRegister" 
+              Background="#F0F8FF" Foreground="#4A6572" 
+              BorderBrush="#B8D4E3" BorderThickness="1" Height="32"/>
+        </StackPanel>
+    </Grid>
 </Window>
