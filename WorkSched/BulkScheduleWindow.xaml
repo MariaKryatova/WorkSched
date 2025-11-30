@@ -1,0 +1,43 @@
+﻿<Window x:Class="WorkSched.BulkScheduleWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Массовое добавление графиков" Height="400" Width="500" WindowStartupLocation="CenterOwner">
+    <Grid Margin="12">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <TextBlock Text="Выберите сотрудников:" FontWeight="SemiBold" Margin="0,0,0,4"/>
+        <ListBox x:Name="lbEmployees" Grid.Row="1" Height="120" SelectionMode="Multiple"
+               DisplayMemberPath="FullName"/>
+
+        <TextBlock Grid.Row="2" Text="Период:" FontWeight="SemiBold" Margin="0,8,0,4"/>
+        <StackPanel Grid.Row="3" Orientation="Horizontal">
+            <DatePicker x:Name="dpBulkStart" Width="120" Margin="0,0,8,0"/>
+            <TextBlock Text="по" VerticalAlignment="Center" Margin="0,0,8,0"/>
+            <DatePicker x:Name="dpBulkEnd" Width="120" Margin="0,0,8,0"/>
+            <ComboBox x:Name="cbBulkShift" Width="150" DisplayMemberPath="Name" SelectedValuePath="ShiftId"/>
+        </StackPanel>
+
+        <TextBlock Grid.Row="4" Text="Дни недели:" FontWeight="SemiBold" Margin="0,8,0,4"/>
+        <StackPanel Grid.Row="5" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,0,0">
+            <CheckBox x:Name="chkMonday" Content="Пн" Margin="0,0,8,0"/>
+            <CheckBox x:Name="chkTuesday" Content="Вт" Margin="0,0,8,0"/>
+            <CheckBox x:Name="chkWednesday" Content="Ср" Margin="0,0,8,0"/>
+            <CheckBox x:Name="chkThursday" Content="Чт" Margin="0,0,8,0"/>
+            <CheckBox x:Name="chkFriday" Content="Пт" Margin="0,0,8,0"/>
+            <CheckBox x:Name="chkSaturday" Content="Сб" Margin="0,0,8,0"/>
+            <CheckBox x:Name="chkSunday" Content="Вс" Margin="0,0,8,0"/>
+        </StackPanel>
+
+        <StackPanel Grid.Row="6" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,0,0">
+            <Button Content="Создать" Width="100" Margin="0,0,8,0" Click="OnBulkCreate"/>
+            <Button Content="Отмена" Width="80" IsCancel="True"/>
+        </StackPanel>
+    </Grid>
+</Window>

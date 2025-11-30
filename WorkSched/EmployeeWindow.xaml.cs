@@ -17,7 +17,7 @@ namespace WorkSched
             InitializeComponent();
             _id = id; _name = name; _role = role;
             Title = $"Сотрудник — {_name}";
-            Loaded += (_, __) => { LoadToday(); LoadMyLeaves(); };
+            Loaded += (_, __) => { LoadToday(); LoadMyLeaves(); LoadNotifications(); };
         }
 
         private static string GetCS() =>
@@ -133,6 +133,7 @@ ELSE
             }
         }
 
+
         private async void OnLeaveSubmit(object sender, RoutedEventArgs e)
         {
             var type = (cbLeaveType.SelectedItem as System.Windows.Controls.ComboBoxItem)?.Content?.ToString();
@@ -162,5 +163,56 @@ ELSE
             }
             catch (Exception ex) { MessageBox.Show("Ошибка заявки: " + ex.Message); }
         }
+        private void LoadNotifications()
+        {
+            var cs = GetCS();
+            using (var conn = new SqlConnection(cs))
+            using (var da = new SqlDataAdapter(@"
+        SELECT NotificationId, Type, Message, IsRead, CreatedDate
+        FROM dbo.Notifications 
+        WHERE EmployeeId = @id 
+        ORDER BY CreatedDate DESC", conn))
+            {
+                da.SelectCommand.Parameters.Add("@id", SqlDbType.Int).Value = _id;
+                var dt = new DataTable();
+                da.Fill(dt);
+                gridNotifications.ItemsSource = dt.DefaultView;
+                txtNotificationsInfo.Text = $"Уведомлений: {dt.Rows.Count}";
+            }
+        }
+        private void OnNotificationsRefresh(object sender, RoutedEventArgs e)
+        {
+            LoadNotifications();
+        }
+
+        private async void OnMarkAsRead(object sender, RoutedEventArgs e)
+        {
+            var row = gridNotifications.SelectedItem as DataRowView;
+            if (row == null)
+            {
+                MessageBox.Show("Выберите уведомление.");
+                return;
+            }
+
+            int notificationId = Convert.ToInt32(row.Row["NotificationId"]);
+            var cs = GetCS();
+
+            try
+            {
+                using (var conn = new SqlConnection(cs))
+                using (var cmd = new SqlCommand("UPDATE dbo.Notifications SET IsRead = 1 WHERE NotificationId = @id", conn))
+                {
+                    cmd.Parameters.Add("@id", SqlDbType.Int).Value = notificationId;
+                    await conn.OpenAsync();
+                    await cmd.ExecuteNonQueryAsync();
+                }
+                LoadNotifications();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Ошибка обновления уведомления: " + ex.Message);
+            }
+        }
+
     }
 }
