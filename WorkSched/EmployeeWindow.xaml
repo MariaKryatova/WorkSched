@@ -70,13 +70,15 @@
                 </DataGrid>
             </DockPanel>
         </TabItem>
-        <TabItem Header="Уведомления" Background="#D4EBF2">
+        <TabItem Header="Сообщения" Background="#D4EBF2">
             <DockPanel Background="#FAFDFF">
                 <StackPanel Orientation="Horizontal" DockPanel.Dock="Top" Margin="8">
                     <Button Content="Обновить" Width="100" Margin="0,0,8,0" Click="OnNotificationsRefresh"
                   Background="#D4EBF2" Foreground="#4A6572" BorderBrush="#B8D4E3"/>
                     <Button Content="Пометить прочитанным" Width="150" Click="OnMarkAsRead"
                   Background="#D4EBF2" Foreground="#4A6572" BorderBrush="#B8D4E3"/>
+                    <Button Content="Отметить все" Width="120" Margin="8,0,0,0" Click="OnMarkAllAsRead"
+      Background="#D4EBF2" Foreground="#4A6572" BorderBrush="#B8D4E3"/>
                     <TextBlock x:Name="txtNotificationsInfo" Margin="16,0,0,0" VerticalAlignment="Center" Foreground="#4A6572"/>
                 </StackPanel>
 
@@ -97,6 +99,7 @@
                         <DataGridCheckBoxColumn Header="Прочитано" Binding="{Binding IsRead}" Width="80"/>
                     </DataGrid.Columns>
                 </DataGrid>
+                
             </DockPanel>
         </TabItem>
     </TabControl>

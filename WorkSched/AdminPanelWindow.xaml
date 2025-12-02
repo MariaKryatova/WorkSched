@@ -157,7 +157,7 @@
             </DockPanel>
         </TabItem>
 
-        <TabItem Header="Графики" Background="#D4EBF2">
+        <TabItem Header="Графики задач" Background="#D4EBF2">
             <DockPanel Background="#FAFDFF">
                 <Grid DockPanel.Dock="Top" Margin="8">
                     <Grid.ColumnDefinitions>
@@ -209,6 +209,52 @@
                         <DataGridTextColumn Header="Статус" Binding="{Binding Status}" Width="100"/>
                     </DataGrid.Columns>
                 </DataGrid>
+            </DockPanel>
+        </TabItem>
+        <TabItem Header="Статус сообщений" Background="#D4EBF2">
+            <DockPanel Background="#FAFDFF">
+                <StackPanel Orientation="Horizontal" DockPanel.Dock="Top" Margin="8">
+                    <Button Content="Обновить" Width="100" Margin="0,0,8,0" Click="OnNotificationsRefreshAdmin"
+                  Background="#D4EBF2" Foreground="#4A6572" BorderBrush="#B8D4E3"/>
+                    <TextBlock x:Name="txtNotificationsInfoAdmin" Margin="16,0,0,0" VerticalAlignment="Center" Foreground="#4A6572"/>
+                </StackPanel>
+
+                <DataGrid x:Name="gridNotificationsAdmin" AutoGenerateColumns="False" Margin="8" IsReadOnly="True"
+                  Background="White" BorderBrush="#B8D4E3" Foreground="#4A6572">
+                    <DataGrid.RowStyle>
+                        <Style TargetType="DataGridRow">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding IsRead}" Value="True">
+                                    <Setter Property="Background" Value="#E8F5E9"/>
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding IsRead}" Value="False">
+                                    <Setter Property="Background" Value="#FFF3E0"/>
+                                    <Setter Property="FontWeight" Value="SemiBold"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </DataGrid.RowStyle>
+
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="ID" Binding="{Binding NotificationId}" Width="50"/>
+                        <DataGridTextColumn Header="Сотрудник" Binding="{Binding FullName}" Width="150"/>
+                        <DataGridTextColumn Header="Тип" Binding="{Binding Type}" Width="100"/>
+                        <DataGridTextColumn Header="Сообщение" Binding="{Binding Message}" Width="*"/>
+                        <DataGridCheckBoxColumn Header="Прочитано" Binding="{Binding IsRead}" IsReadOnly="True" Width="80"/>
+                        <DataGridTextColumn Header="Дата" Binding="{Binding CreatedDate, StringFormat=dd.MM.yyyy HH:mm}" Width="120"/>
+                    </DataGrid.Columns>
+                    <DataGrid.ColumnHeaderStyle>
+                        <Style TargetType="DataGridColumnHeader">
+                            <Setter Property="Background" Value="#D4EBF2"/>
+                            <Setter Property="Foreground" Value="#4A6572"/>
+                            <Setter Property="BorderBrush" Value="#B8D4E3"/>
+                            <Setter Property="FontWeight" Value="SemiBold"/>
+                        </Style>
+                    </DataGrid.ColumnHeaderStyle>
+                   
+ 
+                </DataGrid>
+                
             </DockPanel>
         </TabItem>
     </TabControl>

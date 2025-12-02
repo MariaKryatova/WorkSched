@@ -29,6 +29,7 @@ namespace WorkSched
                 LoadShifts();
                 LoadLeaves();
                 LoadScheduleData();
+                LoadNotificationsForAdmin();
                 InitializeReportDates();
             };
         }
@@ -386,7 +387,6 @@ namespace WorkSched
                     cmd.Parameters.Add("@date", SqlDbType.Date).Value = dpScheduleDate.SelectedDate.Value.Date;
                     cmd.Parameters.Add("@shiftId", SqlDbType.Int).Value = cbScheduleShift.SelectedValue ?? DBNull.Value;
 
-                    // Обработка времени начала
                     if (string.IsNullOrEmpty(tbPlannedStart.Text))
                     {
                         cmd.Parameters.Add("@start", SqlDbType.Time).Value = DBNull.Value;
@@ -651,6 +651,59 @@ namespace WorkSched
                 await conn.OpenAsync();
                 await cmd.ExecuteNonQueryAsync();
             }
+        }
+        private void LoadNotificationsForAdmin()
+        {
+            try
+            {
+                var cs = GetCS();
+                using (var conn = new SqlConnection(cs))
+                using (var da = new SqlDataAdapter(@"
+            SELECT 
+                n.NotificationId,
+                e.FullName,
+                n.Type,
+                n.Message,
+                n.IsRead,
+                n.CreatedDate
+            FROM dbo.Notifications n
+            LEFT JOIN dbo.Employees e ON e.EmployeeId = n.EmployeeId
+            ORDER BY n.CreatedDate DESC", conn))
+                {
+                    var dt = new DataTable();
+                    da.Fill(dt);
+                    gridNotificationsAdmin.ItemsSource = dt.DefaultView;
+
+                    int total = dt.Rows.Count;
+                    int read = dt.AsEnumerable()
+                        .Where(r => r["IsRead"] != DBNull.Value)
+                        .Count(r => Convert.ToBoolean(r["IsRead"]));
+                    int unread = total - read;
+
+                    txtNotificationsInfoAdmin.Text = $"Всего: {total} | ✓ Прочитано: {read} | ✗ Не прочитано: {unread}";
+                }
+            }
+            catch (SqlException sqlEx)
+            {
+                if (sqlEx.Message.Contains("Invalid object name 'Notifications'"))
+                {
+                    txtNotificationsInfoAdmin.Text = "Нет данных об уведомлениях";
+                    gridNotificationsAdmin.ItemsSource = null;
+                }
+                else
+                {
+                    MessageBox.Show("Ошибка загрузки уведомлений: " + sqlEx.Message);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Ошибка: " + ex.Message);
+            }
+        }
+
+        private void OnNotificationsRefreshAdmin(object sender, RoutedEventArgs e)
+        {
+            LoadNotificationsForAdmin();
         }
     }
 }
