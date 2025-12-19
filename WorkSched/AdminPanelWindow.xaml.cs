@@ -3,13 +3,11 @@ using System;
 using System.Configuration;
 using System.Data;
 using System.Data.SqlClient;
-using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using WorkSched.Facades;
 
 namespace WorkSched
 {
@@ -17,6 +15,9 @@ namespace WorkSched
     {
         private readonly int _adminId;
         private readonly string _adminName;
+        private readonly NotificationFacade _notificationFacade = new NotificationFacade();
+        private ReportBuilder _currentReportBuilder;
+        private DataTable _currentReportData;
 
         public AdminPanelWindow(int adminId, string adminName)
         {
@@ -24,22 +25,19 @@ namespace WorkSched
             _adminId = adminId;
             _adminName = adminName;
             Title = "Админ-панель — " + _adminName;
-            Loaded += (s, e) => {
+
+            dpScheduleDate.SelectedDate = DateTime.Today;
+
+            Loaded += async (s, e) =>
+            {
                 LoadUsers();
                 LoadShifts();
                 LoadLeaves();
                 LoadScheduleData();
                 LoadNotificationsForAdmin();
-                InitializeReportDates();
             };
         }
 
-        private void InitializeReportDates()
-        {
-            dpReportStart.SelectedDate = DateTime.Today.AddDays(-7);
-            dpReportEnd.SelectedDate = DateTime.Today;
-            dpScheduleDate.SelectedDate = DateTime.Today;
-        }
 
         private static string GetCS() =>
             ConfigurationManager.ConnectionStrings["WorkSchedConnectionString"]?.ConnectionString
@@ -424,8 +422,11 @@ namespace WorkSched
                     await conn.OpenAsync();
                     await cmd.ExecuteNonQueryAsync();
 
-                    await CreateNotification(Convert.ToInt32(cbScheduleEmployee.SelectedValue),
-                        "NewSchedule", $"Вам назначена смена на {dpScheduleDate.SelectedDate.Value:dd.MM.yyyy}");
+                    await _notificationFacade.NotifyEmployeeAsync(
+                     Convert.ToInt32(cbScheduleEmployee.SelectedValue),
+                     "NewSchedule",
+                     $"Вам назначена смена на {dpScheduleDate.SelectedDate.Value:dd.MM.yyyy}"
+                );
 
                     MessageBox.Show("График добавлен.");
                     LoadScheduleData();
@@ -448,210 +449,7 @@ namespace WorkSched
                 LoadScheduleData();
             }
         }
-
-        private async void OnGenerateReport(object sender, RoutedEventArgs e)
-        {
-            if (dpReportStart.SelectedDate == null || dpReportEnd.SelectedDate == null)
-            {
-                MessageBox.Show("Выберите период для отчета.");
-                return;
-            }
-
-            var reportTypeItem = cbReportType.SelectedItem as ComboBoxItem;
-            if (reportTypeItem == null)
-            {
-                MessageBox.Show("Выберите тип отчета.");
-                return;
-            }
-
-            var reportType = reportTypeItem.Content.ToString();
-            var cs = GetCS();
-
-            try
-            {
-                using (var conn = new SqlConnection(cs))
-                {
-                    await conn.OpenAsync();
-                    DataTable dt = new DataTable();
-
-                    switch (reportType)
-                    {
-                        case "Посещаемость по отделам":
-                            using (var cmd = new SqlCommand(@"
-                                SELECT 
-                                    d.Name as [Отдел],
-                                    COUNT(DISTINCT e.EmployeeId) as [Всего сотрудников],
-                                    SUM(CASE WHEN a.CheckIn IS NOT NULL THEN 1 ELSE 0 END) as [Отметившихся],
-                                    CAST(SUM(CASE WHEN a.CheckIn IS NOT NULL THEN 1 ELSE 0 END) * 100.0 / NULLIF(COUNT(DISTINCT e.EmployeeId), 0) as decimal(5,2)) as [Процент, %]
-                                FROM dbo.Departments d
-                                LEFT JOIN dbo.Employees e ON e.DepartmentId = d.DepartmentId
-                                LEFT JOIN dbo.Attendance a ON a.EmployeeId = e.EmployeeId 
-                                    AND a.WorkDate BETWEEN @start AND @end
-                                GROUP BY d.DepartmentId, d.Name
-                                ORDER BY d.Name", conn))
-                            {
-                                cmd.Parameters.Add("@start", SqlDbType.Date).Value = dpReportStart.SelectedDate.Value;
-                                cmd.Parameters.Add("@end", SqlDbType.Date).Value = dpReportEnd.SelectedDate.Value;
-
-                                using (var da = new SqlDataAdapter(cmd))
-                                {
-                                    da.Fill(dt);
-                                }
-                            }
-                            break;
-
-                        case "Опоздания":
-                            using (var cmd = new SqlCommand(@"
-                                SELECT 
-                                    e.FullName as [Сотрудник], 
-                                    d.Name as [Отдел],
-                                    a.WorkDate as [Дата], 
-                                    CONVERT(varchar(5), a.CheckIn, 108) as [Время прихода],
-                                    CONVERT(varchar(5), s.PlannedStart, 108) as [Плановое время],
-                                    DATEDIFF(MINUTE, s.PlannedStart, a.CheckIn) as [Опоздание, мин]
-                                FROM dbo.Attendance a
-                                JOIN dbo.Employees e ON e.EmployeeId = a.EmployeeId
-                                LEFT JOIN dbo.Departments d ON d.DepartmentId = e.DepartmentId
-                                LEFT JOIN dbo.Schedules s ON s.EmployeeId = a.EmployeeId AND s.WorkDate = a.WorkDate
-                                WHERE a.WorkDate BETWEEN @start AND @end
-                                  AND a.CheckIn > s.PlannedStart
-                                  AND s.PlannedStart IS NOT NULL
-                                ORDER BY a.WorkDate DESC", conn))
-                            {
-                                cmd.Parameters.Add("@start", SqlDbType.Date).Value = dpReportStart.SelectedDate.Value;
-                                cmd.Parameters.Add("@end", SqlDbType.Date).Value = dpReportEnd.SelectedDate.Value;
-
-                                using (var da = new SqlDataAdapter(cmd))
-                                {
-                                    da.Fill(dt);
-                                }
-                            }
-                            break;
-
-                        case "Отпуска и больничные":
-                            using (var cmd = new SqlCommand(@"
-                                SELECT 
-                                    e.FullName as [Сотрудник], 
-                                    d.Name as [Отдел],
-                                    l.Type as [Тип], 
-                                    l.StartDate as [С], 
-                                    l.EndDate as [По],
-                                    l.Status as [Статус], 
-                                    l.Reason as [Причина]
-                                FROM dbo.Leaves l
-                                JOIN dbo.Employees e ON e.EmployeeId = l.EmployeeId
-                                LEFT JOIN dbo.Departments d ON d.DepartmentId = e.DepartmentId
-                                WHERE (l.StartDate <= @end AND l.EndDate >= @start)
-                                ORDER BY l.StartDate DESC", conn))
-                            {
-                                cmd.Parameters.Add("@start", SqlDbType.Date).Value = dpReportStart.SelectedDate.Value;
-                                cmd.Parameters.Add("@end", SqlDbType.Date).Value = dpReportEnd.SelectedDate.Value;
-
-                                using (var da = new SqlDataAdapter(cmd))
-                                {
-                                    da.Fill(dt);
-                                }
-                            }
-                            break;
-                    }
-
-                    gridReports.ItemsSource = dt.DefaultView;
-                    gridReports.Columns.Clear();
-
-                    foreach (DataColumn column in dt.Columns)
-                    {
-                        gridReports.Columns.Add(new DataGridTextColumn
-                        {
-                            Header = column.ColumnName,
-                            Binding = new System.Windows.Data.Binding(column.ColumnName)
-                        });
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show("Ошибка формирования отчета: " + ex.Message);
-            }
-        }
-
-        private void OnExportExcel(object sender, RoutedEventArgs e)
-        {
-            var dataView = gridReports.ItemsSource as DataView;
-            if (dataView == null || dataView.Table.Rows.Count == 0)
-            {
-                MessageBox.Show("Нет данных для экспорта.");
-                return;
-            }
-
-            var saveDialog = new SaveFileDialog
-            {
-                Filter = "CSV files (*.csv)|*.csv",
-                FileName = $"Отчет_{DateTime.Now:yyyyMMdd_HHmmss}.csv"
-            };
-
-            if (saveDialog.ShowDialog() == true)
-            {
-                try
-                {
-                    using (var writer = new StreamWriter(saveDialog.FileName, false, Encoding.UTF8))
-                    {
-                        var headers = dataView.Table.Columns.Cast<DataColumn>()
-                            .Select(col => EscapeCsv(col.ColumnName));
-                        writer.WriteLine(string.Join(";", headers));
-
-                        foreach (DataRowView row in dataView)
-                        {
-                            var values = dataView.Table.Columns.Cast<DataColumn>()
-                                .Select(col => EscapeCsv(row[col.ColumnName]?.ToString() ?? ""));
-                            writer.WriteLine(string.Join(";", values));
-                        }
-                    }
-                    MessageBox.Show("Отчет экспортирован успешно.");
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show("Ошибка экспорта: " + ex.Message);
-                }
-            }
-        }
-
-        private string EscapeCsv(string value)
-        {
-            if (string.IsNullOrEmpty(value)) return "\"\"";
-            if (value.Contains(";") || value.Contains("\"") || value.Contains("\n") || value.Contains("\r"))
-            {
-                value = value.Replace("\"", "\"\"");
-                return $"\"{value}\"";
-            }
-            return value;
-        }
-
-        private async Task CreateNotification(int employeeId, string type, string message)
-        {
-            var cs = GetCS();
-            using (var conn = new SqlConnection(cs))
-            using (var cmd = new SqlCommand(@"
-                IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='Notifications' AND xtype='U')
-                CREATE TABLE dbo.Notifications (
-                    NotificationId INT IDENTITY(1,1) PRIMARY KEY,
-                    EmployeeId INT NOT NULL,
-                    Type NVARCHAR(50) NOT NULL,
-                    Message NVARCHAR(500) NOT NULL,
-                    IsRead BIT NOT NULL DEFAULT 0,
-                    CreatedDate DATETIME2 NOT NULL DEFAULT GETDATE()
-                );
-                
-                INSERT INTO dbo.Notifications (EmployeeId, Type, Message, IsRead, CreatedDate)
-                VALUES (@empId, @type, @message, 0, GETDATE())", conn))
-            {
-                cmd.Parameters.Add("@empId", SqlDbType.Int).Value = employeeId;
-                cmd.Parameters.Add("@type", SqlDbType.NVarChar, 50).Value = type;
-                cmd.Parameters.Add("@message", SqlDbType.NVarChar, 500).Value = message;
-
-                await conn.OpenAsync();
-                await cmd.ExecuteNonQueryAsync();
-            }
-        }
+       
         private void LoadNotificationsForAdmin()
         {
             try
@@ -659,16 +457,16 @@ namespace WorkSched
                 var cs = GetCS();
                 using (var conn = new SqlConnection(cs))
                 using (var da = new SqlDataAdapter(@"
-            SELECT 
-                n.NotificationId,
-                e.FullName,
-                n.Type,
-                n.Message,
-                n.IsRead,
-                n.CreatedDate
-            FROM dbo.Notifications n
-            LEFT JOIN dbo.Employees e ON e.EmployeeId = n.EmployeeId
-            ORDER BY n.CreatedDate DESC", conn))
+                    SELECT 
+                        n.NotificationId,
+                        e.FullName,
+                        n.Type,
+                        n.Message,
+                        n.IsRead,
+                        n.CreatedDate
+                    FROM dbo.Notifications n
+                    LEFT JOIN dbo.Employees e ON e.EmployeeId = n.EmployeeId
+                    ORDER BY n.CreatedDate DESC", conn))
                 {
                     var dt = new DataTable();
                     da.Fill(dt);
@@ -705,5 +503,131 @@ namespace WorkSched
         {
             LoadNotificationsForAdmin();
         }
+
+
+        private void OnBuilderBuildReport(object sender, RoutedEventArgs e)
+        {
+            if (dpBuilderStart.SelectedDate == null || dpBuilderEnd.SelectedDate == null)
+            {
+                txtBuilderResult.Text = "Ошибка: Выберите период";
+                return;
+            }
+
+            var reportTypeItem = cbBuilderReportType.SelectedItem as ComboBoxItem;
+            if (reportTypeItem == null)
+            {
+                txtBuilderResult.Text = "Ошибка: Выберите тип отчета";
+                return;
+            }
+
+            string reportType = reportTypeItem.Content.ToString();
+            ReportType builderReportType;
+
+            if (reportType == "Посещаемость по отделам")
+                builderReportType = ReportType.DepartmentAttendance;
+            else
+                builderReportType = ReportType.LeavesAndSick;
+
+            try
+            {
+                _currentReportBuilder = new ReportBuilder()
+                    .SetReportType(builderReportType)
+                    .SetDateRange(dpBuilderStart.SelectedDate.Value, dpBuilderEnd.SelectedDate.Value)
+                    .BuildData();
+
+                _currentReportData = _currentReportBuilder.GetDataTableResult();
+
+                gridBuilderReport.ItemsSource = _currentReportData.DefaultView;
+                gridBuilderReport.AutoGenerateColumns = true;
+
+                txtBuilderResult.Text = $"✓ Отчет построен успешно!\n" +
+                                       $"Тип: {reportType}\n" +
+                                       $"Период: {dpBuilderStart.SelectedDate.Value:dd.MM.yyyy} - {dpBuilderEnd.SelectedDate.Value:dd.MM.yyyy}\n" +
+                                       $"Записей: {_currentReportData.Rows.Count}";
+            }
+            catch (Exception ex)
+            {
+                txtBuilderResult.Text = $"Ошибка построения отчета: {ex.Message}";
+            }
+        }
+
+        private void OnBuilderGenerateCsv(object sender, RoutedEventArgs e)
+        {
+            if (_currentReportBuilder == null || _currentReportData == null)
+            {
+                txtBuilderResult.Text = "Ошибка: Сначала постройте отчет";
+                return;
+            }
+
+            try
+            {
+                _currentReportBuilder.GenerateCsv();
+                string csvData = _currentReportBuilder.GetCsvResult();
+
+                string preview = csvData.Length > 500
+                    ? csvData.Substring(0, 500) + "...\n\n[Показаны первые 500 символов]"
+                    : csvData;
+
+                txtBuilderResult.Text = $"📋 CSV сгенерирован:\n" +
+                                       $"Длина: {csvData.Length} символов\n" +
+                                       $"Строк: {_currentReportData.Rows.Count + 1}\n\n" +
+                                       $"Предпросмотр:\n{preview}";
+            }
+            catch (Exception ex)
+            {
+                txtBuilderResult.Text = $"Ошибка генерации CSV: {ex.Message}";
+            }
+        }
+
+        private void OnBuilderExportToFile(object sender, RoutedEventArgs e)
+        {
+            if (_currentReportBuilder == null || _currentReportData == null)
+            {
+                txtBuilderResult.Text = "Ошибка: Сначала постройте отчет";
+                return;
+            }
+
+            var saveDialog = new SaveFileDialog
+            {
+                Filter = "CSV files (*.csv)|*.csv|Text files (*.txt)|*.txt",
+                FileName = $"Отчет_{DateTime.Now:yyyyMMdd_HHmmss}.csv"
+            };
+
+            if (saveDialog.ShowDialog() == true)
+            {
+                try
+                {
+                    _currentReportBuilder.ExportToFile(saveDialog.FileName);
+
+                    txtBuilderResult.Text = $"✓ Отчет экспортирован успешно!\n" +
+                                           $"Файл: {saveDialog.FileName}\n" +
+                                           $"Размер: {new FileInfo(saveDialog.FileName).Length} байт";
+                }
+                catch (Exception ex)
+                {
+                    txtBuilderResult.Text = $"Ошибка экспорта: {ex.Message}";
+                }
+            }
+        }
+        private async void OnNotifyAll(object sender, RoutedEventArgs e)
+        {
+            await _notificationFacade.NotifyAllAsync(
+                "System",
+                "Плановые изменения графика. Проверьте расписание."
+            );
+
+            txtFacadeInfo.Text = "✓ Уведомление отправлено всем сотрудникам";
+        }
+
+        private async void OnShowNotificationStats(object sender, RoutedEventArgs e)
+        {
+            var stats = await _notificationFacade.GetStatsAsync();
+
+            txtFacadeInfo.Text =
+                $"Всего уведомлений: {stats.Item1}\n" +
+                $"Прочитано: {stats.Item2}\n" +
+                $"Не прочитано: {stats.Item3}";
+        }
+
     }
 }

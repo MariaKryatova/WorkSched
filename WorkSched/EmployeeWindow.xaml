@@ -25,8 +25,26 @@
                     <TextBlock x:Name="txtTodayInfo" Margin="16,0,0,0" VerticalAlignment="Center" Foreground="#4A6572"/>
                 </StackPanel>
 
-                <TextBlock Grid.Row="2" Text="(Здесь позже появится мини-отчёт по последним явкам)" 
-                   Foreground="#4A6572" FontStyle="Italic"/>
+                <DataGrid x:Name="gridRecentAttendance" Grid.Row="2" AutoGenerateColumns="False" 
+          Margin="0,8,0,0" IsReadOnly="True" MaxHeight="300"
+          Background="White" BorderBrush="#B8D4E3" Foreground="#4A6572" 
+          HeadersVisibility="Column">
+                    <DataGrid.ColumnHeaderStyle>
+                        <Style TargetType="DataGridColumnHeader">
+                            <Setter Property="Background" Value="#D4EBF2"/>
+                            <Setter Property="Foreground" Value="#4A6572"/>
+                            <Setter Property="BorderBrush" Value="#B8D4E3"/>
+                            <Setter Property="FontWeight" Value="SemiBold"/>
+                        </Style>
+                    </DataGrid.ColumnHeaderStyle>
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Дата" Binding="{Binding WorkDate, StringFormat=dd.MM.yyyy}" Width="100"/>
+                        <DataGridTextColumn Header="Вход" Binding="{Binding CheckIn, StringFormat=HH:mm}" Width="80"/>
+                        <DataGridTextColumn Header="Выход" Binding="{Binding CheckOut, StringFormat=HH:mm}" Width="80"/>
+                        <DataGridTextColumn Header="Статус" Binding="{Binding Status}" Width="100"/>
+                        <DataGridTextColumn Header="Длительность" Binding="{Binding Duration}" Width="100"/>
+                    </DataGrid.Columns>
+                </DataGrid>
             </Grid>
         </TabItem>
 

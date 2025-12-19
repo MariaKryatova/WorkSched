@@ -77,7 +77,9 @@ namespace WorkSched
                         VALUES(@l, @p, @f, N'Employee', @d)", conn))
                     {
                         cmd.Parameters.Add("@l", SqlDbType.NVarChar, 50).Value  = login;
-                        cmd.Parameters.Add("@p", SqlDbType.NVarChar, 200).Value = password;  // plain
+                        cmd.Parameters.Add("@p", SqlDbType.NVarChar, 200)
+                             .Value = Passwords.Hash(password);
+
                         cmd.Parameters.Add("@f", SqlDbType.NVarChar, 150).Value = fullName;
                         cmd.Parameters.Add("@d", SqlDbType.Int).Value = (object)deptId ?? DBNull.Value;
 

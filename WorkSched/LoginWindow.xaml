@@ -15,8 +15,34 @@
             <TextBox x:Name="txtLogin" Margin="0,4,0,10" Background="#FFFFFF" Foreground="#4A6572" 
                BorderBrush="#B8D4E3" CaretBrush="#8BA888" Height="28" Padding="4"/>
             <TextBlock Text="Пароль" Foreground="#4A6572" FontWeight="SemiBold"/>
-            <PasswordBox x:Name="pwd" Margin="0,4,0,0" Background="#FFFFFF" Foreground="#4A6572" 
-                   BorderBrush="#B8D4E3" Height="28" Padding="4"/>
+
+            <Grid Margin="0,4,0,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition/>
+                    <ColumnDefinition Width="40"/>
+                </Grid.ColumnDefinitions>
+
+                <PasswordBox x:Name="pwdHidden"
+                 Height="28"
+                 Padding="4"
+                 Background="#FFFFFF"
+                 BorderBrush="#B8D4E3"/>
+
+                <TextBox x:Name="pwdVisible"
+             Height="28"
+             Padding="4"
+             Background="#FFFFFF"
+             BorderBrush="#B8D4E3"
+             Visibility="Collapsed"/>
+
+                <Button Grid.Column="1"
+            Content="👁"
+            Width="32"
+            Height="28"
+            Click="OnTogglePassword"
+            ToolTip="Показать / скрыть пароль"/>
+            </Grid>
+
         </StackPanel>
 
         <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,0,0">

@@ -2,6 +2,7 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Админ-панель" Height="560" Width="940" WindowStartupLocation="CenterScreen"
+        xmlns:sys="clr-namespace:System;assembly=mscorlib"
         Background="#E6F3FF">
     <TabControl Background="#F0F8FF">
         <TabItem Header="Пользователи" Background="#D4EBF2">
@@ -127,37 +128,7 @@
                 </DataGrid>
             </DockPanel>
         </TabItem>
-        <TabItem Header="Отчеты" Background="#D4EBF2">
-            <DockPanel Background="#FAFDFF">
-                <StackPanel Orientation="Horizontal" DockPanel.Dock="Top" Margin="8">
-                    <DatePicker x:Name="dpReportStart" Width="140" Margin="0,0,8,0"/>
-                    <DatePicker x:Name="dpReportEnd" Width="140" Margin="0,0,8,0"/>
-                    <ComboBox x:Name="cbReportType" Width="160" Margin="0,0,8,0" SelectedIndex="0">
-                        <ComboBoxItem Content="Посещаемость по отделам"/>
-                        <ComboBoxItem Content="Опоздания"/>
-                        <ComboBoxItem Content="Отпуска и больничные"/>
-                    </ComboBox>
-                    <Button Content="Сформировать" Width="120" Click="OnGenerateReport"
-                          Background="#D4EBF2" Foreground="#4A6572" BorderBrush="#B8D4E3"/>
-                    <Button Content="Экспорт в Excel" Width="120" Margin="8,0,0,0" Click="OnExportExcel"
-                          Background="#D4EBF2" Foreground="#4A6572" BorderBrush="#B8D4E3"/>
-                </StackPanel>
-
-                <DataGrid x:Name="gridReports" AutoGenerateColumns="False" Margin="8" IsReadOnly="True"
-                          Background="White" BorderBrush="#B8D4E3" Foreground="#4A6572">
-                    <DataGrid.ColumnHeaderStyle>
-                        <Style TargetType="DataGridColumnHeader">
-                            <Setter Property="Background" Value="#D4EBF2"/>
-                            <Setter Property="Foreground" Value="#4A6572"/>
-                            <Setter Property="BorderBrush" Value="#B8D4E3"/>
-                            <Setter Property="FontWeight" Value="SemiBold"/>
-                        </Style>
-                    </DataGrid.ColumnHeaderStyle>
-                </DataGrid>
-            </DockPanel>
-        </TabItem>
-
-        <TabItem Header="Графики задач" Background="#D4EBF2">
+         <TabItem Header="Графики задач" Background="#D4EBF2">
             <DockPanel Background="#FAFDFF">
                 <Grid DockPanel.Dock="Top" Margin="8">
                     <Grid.ColumnDefinitions>
@@ -255,6 +226,96 @@
  
                 </DataGrid>
                 
+            </DockPanel>
+        </TabItem>
+        <TabItem Header="Уведомления" Background="#D4EBF2">
+          <DockPanel Background="#FAFDFF">
+            <StackPanel Margin="10">
+                <Button Content="Оповестить всех о плановых изменениях"
+                Margin="0,10,0,0"
+                Click="OnNotifyAll"/>
+
+                <Button Content="Показать статистику уведомлений"
+                Margin="0,5,0,0"
+                Click="OnShowNotificationStats"/>
+
+                <TextBlock x:Name="txtFacadeInfo"
+                   Margin="0,10,0,0"
+                   TextWrapping="Wrap"/>
+            </StackPanel>
+          </DockPanel>
+        </TabItem>
+
+        <TabItem Header="Отчеты" Background="#D4EBF2">
+            <DockPanel Background="#FAFDFF">
+                <StackPanel DockPanel.Dock="Top" Margin="8">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <TextBlock Text="Тип отчета:" Grid.Row="0" Grid.Column="0" 
+                           VerticalAlignment="Center" Margin="0,0,8,4"/>
+                        <ComboBox x:Name="cbBuilderReportType" Grid.Row="0" Grid.Column="1" 
+                          Width="200" HorizontalAlignment="Left" Margin="0,0,0,4"
+                          SelectedIndex="0">
+                            <ComboBoxItem Content="Посещаемость по отделам"/>
+                            <ComboBoxItem Content="Отпуска и больничные"/>
+                        </ComboBox>
+
+                        <TextBlock Text="Начало периода:" Grid.Row="1" Grid.Column="0" 
+                           VerticalAlignment="Center" Margin="0,0,8,4"/>
+                        <DatePicker x:Name="dpBuilderStart" Grid.Row="1" Grid.Column="1" 
+                            Width="120" HorizontalAlignment="Left" Margin="0,0,0,4"/>
+
+                        <TextBlock Text="Конец периода:" Grid.Row="2" Grid.Column="0" 
+                           VerticalAlignment="Center" Margin="0,0,8,4"/>
+                        <DatePicker x:Name="dpBuilderEnd" Grid.Row="2" Grid.Column="1" 
+                            Width="120" HorizontalAlignment="Left" Margin="0,0,0,4"/>
+                    </Grid>
+
+                    <StackPanel Orientation="Horizontal" Margin="0,12,0,8">
+                        <Button Content="Построить отчет" Width="120" Margin="0,0,8,0" 
+                        Click="OnBuilderBuildReport" 
+                        Background="#D4EBF2" Foreground="#4A6572" BorderBrush="#B8D4E3"/>
+                        <Button Content="Сгенерировать CSV" Width="140" Margin="0,0,8,0" 
+                        Click="OnBuilderGenerateCsv"
+                        Background="#D4EBF2" Foreground="#4A6572" BorderBrush="#B8D4E3"/>
+                        <Button Content="Экспорт в файл" Width="120" 
+                        Click="OnBuilderExportToFile"
+                        Background="#D4EBF2" Foreground="#4A6572" BorderBrush="#B8D4E3"/>
+                    </StackPanel>
+
+                    <Border BorderBrush="#B8D4E3" BorderThickness="1" Background="#FFFFFF" 
+                    Padding="8" Margin="0,0,0,8" MaxHeight="100">
+                        <ScrollViewer>
+                            <TextBlock x:Name="txtBuilderResult" Text="CSV данные будут отображены здесь..." 
+                               Foreground="#4A6572" TextWrapping="Wrap"/>
+                        </ScrollViewer>
+                    </Border>
+
+                    <TextBlock Text="Предпросмотр отчета:" FontWeight="SemiBold" 
+                       Foreground="#4A6572" Margin="0,8,0,4"/>
+                </StackPanel>
+
+                <DataGrid x:Name="gridBuilderReport" AutoGenerateColumns="True" Margin="8" 
+                  IsReadOnly="True" Background="White" BorderBrush="#B8D4E3" 
+                  Foreground="#4A6572">
+                    <DataGrid.ColumnHeaderStyle>
+                        <Style TargetType="DataGridColumnHeader">
+                            <Setter Property="Background" Value="#D4EBF2"/>
+                            <Setter Property="Foreground" Value="#4A6572"/>
+                            <Setter Property="BorderBrush" Value="#B8D4E3"/>
+                            <Setter Property="FontWeight" Value="SemiBold"/>
+                        </Style>
+                    </DataGrid.ColumnHeaderStyle>
+                </DataGrid>
             </DockPanel>
         </TabItem>
     </TabControl>

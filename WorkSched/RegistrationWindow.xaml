@@ -29,8 +29,8 @@
               DisplayMemberPath="Name" SelectedValuePath="DepartmentId"/>
 
     <StackPanel Grid.Row="5" Grid.ColumnSpan="2" Orientation="Horizontal" HorizontalAlignment="Right">
-      <Button Content="Создать" Width="100" Margin="0,12,8,0" Click="OnCreate"/>
-      <Button Content="Отмена" Width="90" Margin="0,12,0,0" IsCancel="True"/>
+            <Button Content="Создать" Width="100" Margin="0,12,8,0" Click="OnCreate" Height="114" Background="#D4EBF2"/>
+            <Button Content="Отмена" Width="90" Margin="0,12,0,0" IsCancel="True" Height="114" Background="#D4EBF2"/>
     </StackPanel>
   </Grid>
 </Window>

@@ -25,7 +25,7 @@
         </StackPanel>
 
         <TextBlock Grid.Row="4" Text="Дни недели:" FontWeight="SemiBold" Margin="0,8,0,4"/>
-        <StackPanel Grid.Row="5" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,0,0">
+        <StackPanel Grid.Row="5" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,0,80">
             <CheckBox x:Name="chkMonday" Content="Пн" Margin="0,0,8,0"/>
             <CheckBox x:Name="chkTuesday" Content="Вт" Margin="0,0,8,0"/>
             <CheckBox x:Name="chkWednesday" Content="Ср" Margin="0,0,8,0"/>
@@ -36,8 +36,8 @@
         </StackPanel>
 
         <StackPanel Grid.Row="6" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,0,0">
-            <Button Content="Создать" Width="100" Margin="0,0,8,0" Click="OnBulkCreate"/>
-            <Button Content="Отмена" Width="80" IsCancel="True"/>
+            <Button Content="Создать" Width="100" Margin="0,0,8,0" Click="OnBulkCreate" Height="57"/>
+            <Button Content="Отмена" Width="80" IsCancel="True" Height="57"/>
         </StackPanel>
     </Grid>
 </Window>

@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Configuration;
 using System.Data;
 using System.Data.SqlClient;
@@ -10,6 +9,8 @@ namespace WorkSched
 {
     public partial class LoginWindow : Window
     {
+        private bool _passwordVisible;
+
         public LoginWindow() => InitializeComponent();
 
         private static string GetCS() =>
@@ -17,20 +18,10 @@ namespace WorkSched
             ?? Properties.Settings.Default.WorkSchedConnectionString
             ?? throw new InvalidOperationException("Не найдена строка подключения 'WorkSchedConnectionString'.");
 
-        private static readonly Dictionary<string, string> Hardcoded =
-            new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
-            {
-                ["admin"]        = "admin123",
-                ["mgr_it"]       = "mgrit!",
-                ["ivan.ivanov"]  = "pass1",
-                ["mgr_sales"]    = "mgrsales!",
-                ["maria.smir"]   = "pass2"
-            };
-
         private async void OnLogin(object sender, RoutedEventArgs e)
         {
             string login = txtLogin.Text?.Trim();
-            string password = pwd.Password;
+            string password = _passwordVisible ? pwdVisible.Text : pwdHidden.Password;
 
             if (string.IsNullOrWhiteSpace(login) || string.IsNullOrWhiteSpace(password))
             {
@@ -49,7 +40,6 @@ namespace WorkSched
                 {
                     cmd.Parameters.Add("@l", SqlDbType.NVarChar, 50).Value = login;
                     await conn.OpenAsync();
-
                     using (var r = await cmd.ExecuteReaderAsync(CommandBehavior.SingleRow))
                     {
                         if (!await r.ReadAsync())
@@ -58,37 +48,31 @@ namespace WorkSched
                             return;
                         }
 
-                        int id      = r.GetInt32(0);
+                        int id = r.GetInt32(0);
                         string name = r.GetString(1);
                         string role = r.GetString(2);
 
-                        string stored;
+                        string storedHash;
                         object raw = r.GetValue(3);
-                        if (raw is string s) stored = s;
-                        else if (raw is byte[] bytes) stored = Encoding.Unicode.GetString(bytes);
-                        else stored = Convert.ToString(raw) ?? string.Empty;
 
-                        if (Hardcoded.TryGetValue(login, out var expectedPlain))
-                        {
-                            if (!string.Equals(password, expectedPlain, StringComparison.Ordinal))
-                            {
-                                MessageBox.Show("Пароль не подошёл.");
-                                return;
-                            }
-                        }
+                        if (raw is string s)
+                            storedHash = s;
+                        else if (raw is byte[] bytes)
+                            storedHash = Encoding.Unicode.GetString(bytes);
                         else
+                            storedHash = Convert.ToString(raw) ?? string.Empty;
+
+                        if (!Passwords.Verify(password, storedHash))
                         {
-                            if (!VerifyFlexible(password, stored))
-                            {
-                                MessageBox.Show("Пароль не подошёл.");
-                                return;
-                            }
+                            MessageBox.Show("Неверный логин или пароль.");
+                            return;
                         }
 
                         if (string.Equals(role, "Admin", StringComparison.OrdinalIgnoreCase))
                             new AdminPanelWindow(id, name).Show();
                         else
                             new EmployeeWindow(id, name, role).Show();
+
                         Close();
                     }
                 }
@@ -104,32 +88,25 @@ namespace WorkSched
             new RegistrationWindow { Owner = this }.ShowDialog();
         }
 
-        private static bool VerifyFlexible(string password, string stored)
+        private void OnTogglePassword(object sender, RoutedEventArgs e)
         {
-            if (string.IsNullOrWhiteSpace(stored)) return false;
-
-            if (stored.StartsWith("PBKDF2$", StringComparison.Ordinal))
+            if (_passwordVisible)
             {
-                var parts = stored.Split('$');
-                if (parts.Length != 4) return false;
-                if (!int.TryParse(parts[1], out var iterations)) return false;
-
-                try
-                {
-                    var salt     = Convert.FromBase64String(parts[2]);
-                    var expected = Convert.FromBase64String(parts[3]);
-                    using (var pbkdf2 = new System.Security.Cryptography.Rfc2898DeriveBytes(password, salt, iterations))
-                    {
-                        var actual = pbkdf2.GetBytes(expected.Length);
-                        if (actual.Length != expected.Length) return false;
-                        int diff = 0;
-                        for (int i = 0; i < actual.Length; i++) diff |= actual[i] ^ expected[i];
-                        return diff == 0;
-                    }
-                }
-                catch { return false; }
+                pwdHidden.Password = pwdVisible.Text;
+                pwdHidden.Visibility = Visibility.Visible;
+                pwdVisible.Visibility = Visibility.Collapsed;
+                pwdHidden.Focus();
             }
-            return string.Equals(password, stored, StringComparison.Ordinal);
+            else
+            {
+                pwdVisible.Text = pwdHidden.Password;
+                pwdVisible.Visibility = Visibility.Visible;
+                pwdHidden.Visibility = Visibility.Collapsed;
+                pwdVisible.Focus();
+                pwdVisible.CaretIndex = pwdVisible.Text.Length;
+            }
+
+            _passwordVisible = !_passwordVisible;
         }
     }
 }

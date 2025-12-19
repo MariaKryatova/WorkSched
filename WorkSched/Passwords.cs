@@ -12,7 +12,7 @@ namespace WorkSched
             using (var pbkdf2 = new Rfc2898DeriveBytes(password, salt, iterations))
             {
                 var hash = pbkdf2.GetBytes(32);
-                return $"PBKDF2${{iterations}}${{Convert.ToBase64String(salt)}}${{Convert.ToBase64String(hash)}}";
+                return $"PBKDF2${iterations}${Convert.ToBase64String(salt)}${Convert.ToBase64String(hash)}";
             }
         }
 
@@ -40,6 +40,5 @@ namespace WorkSched
             return password == stored;
         }
 
-        public static bool IsPlain(string stored) => !(stored?.StartsWith("PBKDF2$") ?? false);
     }
 }
