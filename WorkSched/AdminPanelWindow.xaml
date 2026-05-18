@@ -46,9 +46,13 @@
             </DockPanel>
         </TabItem>
 
-        <TabItem Header="Смены" Background="#D4EBF2">
+        <TabItem Header="Смены" Background="#D4EBF2" Height="20" VerticalAlignment="Top">
             <DockPanel Background="#FAFDFF">
                 <Grid DockPanel.Dock="Top" Margin="8">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="2*"/>
                         <ColumnDefinition Width="*"/>
@@ -56,23 +60,55 @@
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
-                    <TextBox x:Name="tbShiftName" Margin="0,0,8,0" ToolTip="Название смены"
-                   Background="White" Foreground="#4A6572" BorderBrush="#B8D4E3"/>
-                    <TextBox x:Name="tbStart" Grid.Column="1" Margin="0,0,8,0" ToolTip="HH:mm"
-                   Background="White" Foreground="#4A6572" BorderBrush="#B8D4E3"/>
-                    <TextBox x:Name="tbEnd" Grid.Column="2" Margin="0,0,8,0" ToolTip="HH:mm"
-                   Background="White" Foreground="#4A6572" BorderBrush="#B8D4E3"/>
-                    <TextBox x:Name="tbBreak" Grid.Column="3" Margin="0,0,8,0" ToolTip="перерыв, мин"
-                   Background="White" Foreground="#4A6572" BorderBrush="#B8D4E3"/>
-                    <StackPanel Grid.Column="4" Orientation="Horizontal">
+
+                    <TextBlock Text="Название смены" Grid.Row="0" Grid.Column="0" 
+                       Foreground="#4A6572" FontSize="12" Margin="0,0,8,4"
+                       VerticalAlignment="Center"/>
+                    <TextBlock Text="Начало " Grid.Row="0" Grid.Column="1" 
+                       Foreground="#4A6572" FontSize="12" Margin="0,0,8,4"
+                       VerticalAlignment="Center"/>
+                    <TextBlock Text="Конец " Grid.Row="0" Grid.Column="2" 
+                       Foreground="#4A6572" FontSize="12" Margin="0,0,8,4"
+                       VerticalAlignment="Center"/>
+                    <TextBlock Text="Перерыв " Grid.Row="0" Grid.Column="3" 
+                       Foreground="#4A6572" FontSize="12" Margin="0,0,8,4"
+                       VerticalAlignment="Center"/>
+
+                    <TextBox x:Name="tbShiftName" Grid.Row="1" Grid.Column="0" Margin="0,0,8,0" 
+                     ToolTip="Название смены" Background="White" Foreground="#4A6572" 
+                     BorderBrush="#B8D4E3"/>
+
+                    <TextBox x:Name="tbStart" Grid.Row="1" Grid.Column="1" Margin="0,0,8,0" 
+         ToolTip="Введите 4 цифры (например: 0900 → 09:00)" 
+         Background="White" Foreground="#4A6572" BorderBrush="#B8D4E3" 
+         MaxLength="5"
+         PreviewTextInput="NumberOnlyPreview"
+         TextChanged="tbStart_TextChanged"/>
+
+                    <TextBox x:Name="tbEnd" Grid.Row="1" Grid.Column="2" Margin="0,0,8,0" 
+         ToolTip="Введите 4 цифры (например: 1800 → 18:00)" 
+         Background="White" Foreground="#4A6572" BorderBrush="#B8D4E3" 
+         MaxLength="5"
+         PreviewTextInput="NumberOnlyPreview"
+         TextChanged="tbEnd_TextChanged"/>
+
+                    <TextBox x:Name="tbBreak" Grid.Row="1" Grid.Column="3" Margin="0,0,8,0" 
+         ToolTip="Перерыв в минутах (максимум 60)" 
+         Background="White" Foreground="#4A6572" BorderBrush="#B8D4E3" 
+         MaxLength="2"
+         PreviewTextInput="NumberOnlyPreview"
+         TextChanged="tbBreak_TextChanged"/>
+
+                    <StackPanel Grid.Row="1" Grid.Column="4" Orientation="Horizontal">
                         <Button Content="Добавить" Width="90" Margin="0,0,8,0" Click="OnShiftAdd"
-                    Background="#D4EBF2" Foreground="#4A6572" BorderBrush="#B8D4E3"/>
+                        Background="#D4EBF2" Foreground="#4A6572" BorderBrush="#B8D4E3"/>
                         <Button Content="Изменить" Width="90" Margin="0,0,8,0" Click="OnShiftUpdate"
-                    Background="#D4EBF2" Foreground="#4A6572" BorderBrush="#B8D4E3"/>
+                        Background="#D4EBF2" Foreground="#4A6572" BorderBrush="#B8D4E3"/>
                         <Button Content="Удалить" Width="90" Click="OnShiftDelete"
-                    Background="#D4EBF2" Foreground="#4A6572" BorderBrush="#B8D4E3"/>
+                        Background="#D4EBF2" Foreground="#4A6572" BorderBrush="#B8D4E3"/>
                     </StackPanel>
                 </Grid>
+
                 <DataGrid x:Name="gridShifts" AutoGenerateColumns="False" Margin="8" SelectionMode="Single" IsReadOnly="True"
                   SelectionChanged="OnShiftSelectionChanged" Background="White" BorderBrush="#B8D4E3"
                   Foreground="#4A6572" HeadersVisibility="Column">
@@ -128,7 +164,8 @@
                 </DataGrid>
             </DockPanel>
         </TabItem>
-         <TabItem Header="Графики задач" Background="#D4EBF2">
+
+        <TabItem Header="Графики задач" Background="#D4EBF2">
             <DockPanel Background="#FAFDFF">
                 <Grid DockPanel.Dock="Top" Margin="8">
                     <Grid.ColumnDefinitions>
@@ -182,6 +219,7 @@
                 </DataGrid>
             </DockPanel>
         </TabItem>
+
         <TabItem Header="Статус сообщений" Background="#D4EBF2">
             <DockPanel Background="#FAFDFF">
                 <StackPanel Orientation="Horizontal" DockPanel.Dock="Top" Margin="8">
@@ -222,28 +260,131 @@
                             <Setter Property="FontWeight" Value="SemiBold"/>
                         </Style>
                     </DataGrid.ColumnHeaderStyle>
-                   
- 
                 </DataGrid>
-                
             </DockPanel>
         </TabItem>
+
         <TabItem Header="Уведомления" Background="#D4EBF2">
-          <DockPanel Background="#FAFDFF">
-            <StackPanel Margin="10">
-                <Button Content="Оповестить всех о плановых изменениях"
-                Margin="0,10,0,0"
-                Click="OnNotifyAll"/>
+            <DockPanel Background="#FAFDFF">
+                <StackPanel Margin="10">
+                    <Button Content="Оповестить всех о плановых изменениях"
+                    Margin="0,10,0,0"
+                    Click="OnNotifyAll"
+                    Background="#D4EBF2" Foreground="#4A6572" BorderBrush="#B8D4E3"/>
 
-                <Button Content="Показать статистику уведомлений"
-                Margin="0,5,0,0"
-                Click="OnShowNotificationStats"/>
+                    <Button Content="Показать статистику уведомлений"
+                    Margin="0,5,0,0"
+                    Click="OnShowNotificationStats"
+                    Background="#D4EBF2" Foreground="#4A6572" BorderBrush="#B8D4E3"/>
 
-                <TextBlock x:Name="txtFacadeInfo"
-                   Margin="0,10,0,0"
-                   TextWrapping="Wrap"/>
-            </StackPanel>
-          </DockPanel>
+                    <TextBlock x:Name="txtFacadeInfo"
+                       Margin="0,10,0,0"
+                       TextWrapping="Wrap"
+                       Foreground="#4A6572"/>
+                </StackPanel>
+            </DockPanel>
+        </TabItem>
+
+        <TabItem Header="Прогноз отпусков" Background="#D4EBF2">
+            <DockPanel Background="#FAFDFF">
+                <StackPanel DockPanel.Dock="Top" Margin="8">
+                    <Grid Margin="0,0,0,8">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <TextBlock Text="Год прогноза:" VerticalAlignment="Center" Margin="0,0,8,0" Foreground="#4A6572" FontWeight="SemiBold"/>
+                        <ComboBox x:Name="cbPredictionYear" Grid.Column="1" Width="100" 
+                                  HorizontalAlignment="Left" SelectedIndex="0"
+                                  Background="White" Foreground="#4A6572" BorderBrush="#B8D4E3">
+                            <ComboBoxItem Content="2025"/>
+                            <ComboBoxItem Content="2026"/>
+                            <ComboBoxItem Content="2027"/>
+                        </ComboBox>
+
+                        <Button Grid.Column="2" Content="Прогноз для всех" Width="140" 
+                                Click="OnPredictAll" Margin="8,0,0,0"
+                                Background="#D4EBF2" Foreground="#4A6572" BorderBrush="#B8D4E3"
+                                FontWeight="SemiBold"/>
+                    </Grid>
+
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                        <Button Content="Обновить статус ИИ" Width="120" Margin="0,0,8,0" Click="OnRefreshPredictions"
+                                Background="#D4EBF2" Foreground="#4A6572" BorderBrush="#B8D4E3"/>
+                        <TextBlock x:Name="txtAIConnectionStatus" Margin="16,0,0,0" 
+                                   VerticalAlignment="Center" Foreground="#4A6572"/>
+                    </StackPanel>
+                </StackPanel>
+
+                <DataGrid x:Name="gridPredictions" AutoGenerateColumns="False" Margin="8" 
+                          IsReadOnly="True" Background="White" BorderBrush="#B8D4E3" 
+                          Foreground="#4A6572" HeadersVisibility="Column">
+                    <DataGrid.ColumnHeaderStyle>
+                        <Style TargetType="DataGridColumnHeader">
+                            <Setter Property="Background" Value="#D4EBF2"/>
+                            <Setter Property="Foreground" Value="#4A6572"/>
+                            <Setter Property="BorderBrush" Value="#B8D4E3"/>
+                            <Setter Property="FontWeight" Value="SemiBold"/>
+                        </Style>
+                    </DataGrid.ColumnHeaderStyle>
+                    <DataGrid.RowStyle>
+                        <Style TargetType="DataGridRow">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding RiskCategory}" Value="Высокий">
+                                    <Setter Property="Background" Value="#FFE6E6"/>
+                                    <Setter Property="Foreground" Value="#CC0000"/>
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding RiskCategory}" Value="Средний">
+                                    <Setter Property="Background" Value="#FFF5E6"/>
+                                    <Setter Property="Foreground" Value="#CC8400"/>
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding RiskCategory}" Value="Низкий">
+                                    <Setter Property="Background" Value="#E6FFE6"/>
+                                    <Setter Property="Foreground" Value="#008800"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </DataGrid.RowStyle>
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="ID" Binding="{Binding EmployeeId}" Width="60"/>
+                        <DataGridTextColumn Header="Сотрудник" Binding="{Binding FullName}" Width="150"/>
+                        <DataGridTextColumn Header="Отдел" Binding="{Binding Department}" Width="100"/>
+                        <DataGridTextColumn Header="Прогноз отпуска" Binding="{Binding PredictedVacationDays, StringFormat=F1}" Width="110">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="HorizontalAlignment" Value="Right"/>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+                        <DataGridTextColumn Header="Прогноз больничных" Binding="{Binding PredictedSickDays, StringFormat=F1}" Width="120">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="HorizontalAlignment" Value="Right"/>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+                        <DataGridTextColumn Header="Всего дней" Binding="{Binding PredictedTotalDays, StringFormat=F1}" Width="90">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="HorizontalAlignment" Value="Right"/>
+                                    <Setter Property="FontWeight" Value="Bold"/>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+                        <DataGridTextColumn Header="Категория риска" Binding="{Binding RiskCategory}" Width="100"/>
+                        <DataGridTextColumn Header="Рекомендации" Binding="{Binding RecommendationsText}" Width="250"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+
+                <Border BorderBrush="#B8D4E3" BorderThickness="1" Background="#FFFFFF" 
+                        Padding="8" Margin="8" MaxHeight="100" CornerRadius="5">
+                    <ScrollViewer>
+                        <TextBlock x:Name="txtPredictionSummary" TextWrapping="Wrap" Foreground="#4A6572" FontSize="11"/>
+                    </ScrollViewer>
+                </Border>
+            </DockPanel>
         </TabItem>
 
         <TabItem Header="Отчеты" Background="#D4EBF2">
@@ -261,23 +402,26 @@
                         </Grid.ColumnDefinitions>
 
                         <TextBlock Text="Тип отчета:" Grid.Row="0" Grid.Column="0" 
-                           VerticalAlignment="Center" Margin="0,0,8,4"/>
+                           VerticalAlignment="Center" Margin="0,0,8,4" Foreground="#4A6572"/>
                         <ComboBox x:Name="cbBuilderReportType" Grid.Row="0" Grid.Column="1" 
                           Width="200" HorizontalAlignment="Left" Margin="0,0,0,4"
+                          Background="White" Foreground="#4A6572" BorderBrush="#B8D4E3"
                           SelectedIndex="0">
                             <ComboBoxItem Content="Посещаемость по отделам"/>
                             <ComboBoxItem Content="Отпуска и больничные"/>
                         </ComboBox>
 
                         <TextBlock Text="Начало периода:" Grid.Row="1" Grid.Column="0" 
-                           VerticalAlignment="Center" Margin="0,0,8,4"/>
+                           VerticalAlignment="Center" Margin="0,0,8,4" Foreground="#4A6572"/>
                         <DatePicker x:Name="dpBuilderStart" Grid.Row="1" Grid.Column="1" 
-                            Width="120" HorizontalAlignment="Left" Margin="0,0,0,4"/>
+                            Width="120" HorizontalAlignment="Left" Margin="0,0,0,4"
+                            Background="White" Foreground="#4A6572" BorderBrush="#B8D4E3"/>
 
                         <TextBlock Text="Конец периода:" Grid.Row="2" Grid.Column="0" 
-                           VerticalAlignment="Center" Margin="0,0,8,4"/>
+                           VerticalAlignment="Center" Margin="0,0,8,4" Foreground="#4A6572"/>
                         <DatePicker x:Name="dpBuilderEnd" Grid.Row="2" Grid.Column="1" 
-                            Width="120" HorizontalAlignment="Left" Margin="0,0,0,4"/>
+                            Width="120" HorizontalAlignment="Left" Margin="0,0,0,4"
+                            Background="White" Foreground="#4A6572" BorderBrush="#B8D4E3"/>
                     </Grid>
 
                     <StackPanel Orientation="Horizontal" Margin="0,12,0,8">
@@ -293,7 +437,7 @@
                     </StackPanel>
 
                     <Border BorderBrush="#B8D4E3" BorderThickness="1" Background="#FFFFFF" 
-                    Padding="8" Margin="0,0,0,8" MaxHeight="100">
+                    Padding="8" Margin="0,0,0,8" MaxHeight="100" CornerRadius="5">
                         <ScrollViewer>
                             <TextBlock x:Name="txtBuilderResult" Text="CSV данные будут отображены здесь..." 
                                Foreground="#4A6572" TextWrapping="Wrap"/>

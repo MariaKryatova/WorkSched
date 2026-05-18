@@ -1,0 +1,6 @@
+EmployeeId,FullName,Department,Year,Personal,SickDays,VacationDays,TotalDays,PrevTotalDays,PrevVacationDays,PrevSickDays,YearsWorked,DepartmentCode
+2,Борис Техничный,IT,2025,0.0,0.0,12.0,12.0,13.0,13.0,0.0,3,1
+3,Иван Иванов,IT,2025,0.0,0.0,26.0,26.0,15.0,11.0,4.0,3,1
+4,Виктор Продажнин,Sales,2025,2.0,10.0,15.0,25.0,19.0,16.0,3.0,3,2
+5,Мария Смирнова,Sales,2025,0.0,0.0,5.0,5.0,8.0,8.0,0.0,3,2
+1002,Николнко Лана ильмировна,HR,2025,0.0,2.0,0.0,2.0,6.0,6.0,0.0,3,0

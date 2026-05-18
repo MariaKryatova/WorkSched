@@ -8,6 +8,8 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using WorkSched.Facades;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace WorkSched
 {
@@ -19,6 +21,9 @@ namespace WorkSched
         private ReportBuilder _currentReportBuilder;
         private DataTable _currentReportData;
 
+        private AIClient _aiClient;
+        private List<PredictionViewModel> _predictions;
+
         public AdminPanelWindow(int adminId, string adminName)
         {
             InitializeComponent();
@@ -26,7 +31,15 @@ namespace WorkSched
             _adminName = adminName;
             Title = "Админ-панель — " + _adminName;
 
+            _aiClient = new AIClient();
+            _predictions = new List<PredictionViewModel>();
+
             dpScheduleDate.SelectedDate = DateTime.Today;
+
+            if (cbPredictionYear != null)
+            {
+                cbPredictionYear.SelectedIndex = 1; 
+            }
 
             Loaded += async (s, e) =>
             {
@@ -35,9 +48,9 @@ namespace WorkSched
                 LoadLeaves();
                 LoadScheduleData();
                 LoadNotificationsForAdmin();
+                await CheckAIConnection();
             };
         }
-
 
         private static string GetCS() =>
             ConfigurationManager.ConnectionStrings["WorkSchedConnectionString"]?.ConnectionString
@@ -449,7 +462,7 @@ namespace WorkSched
                 LoadScheduleData();
             }
         }
-       
+
         private void LoadNotificationsForAdmin()
         {
             try
@@ -504,7 +517,6 @@ namespace WorkSched
             LoadNotificationsForAdmin();
         }
 
-
         private void OnBuilderBuildReport(object sender, RoutedEventArgs e)
         {
             if (dpBuilderStart.SelectedDate == null || dpBuilderEnd.SelectedDate == null)
@@ -550,6 +562,7 @@ namespace WorkSched
                 txtBuilderResult.Text = $"Ошибка построения отчета: {ex.Message}";
             }
         }
+
 
         private void OnBuilderGenerateCsv(object sender, RoutedEventArgs e)
         {
@@ -609,6 +622,72 @@ namespace WorkSched
                 }
             }
         }
+    
+        private void NumberOnlyPreview(object sender, System.Windows.Input.TextCompositionEventArgs e)
+        {
+            e.Handled = !char.IsDigit(e.Text[0]);
+        }
+
+  
+        private void tbStart_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            AutoFormatTime(sender as TextBox);
+        }
+
+        private void tbEnd_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            AutoFormatTime(sender as TextBox);
+        }
+
+        private void AutoFormatTime(TextBox textBox)
+        {
+            if (textBox == null) return;
+
+            string digits = new string(textBox.Text.Where(char.IsDigit).ToArray());
+
+            if (digits.Length == 4)
+            {
+                string hours = digits.Substring(0, 2);
+                string minutes = digits.Substring(2, 2);
+
+                int h = int.Parse(hours);
+                int m = int.Parse(minutes);
+
+                if (h > 23) h = 23;
+                if (m > 59) m = 59;
+
+                string formatted = $"{h:00}:{m:00}";
+
+                if (textBox.Text != formatted)
+                {
+                    int caretPos = textBox.CaretIndex;
+                    textBox.Text = formatted;
+                    textBox.CaretIndex = Math.Min(caretPos, formatted.Length);
+                }
+            }
+        }
+
+      
+        private void tbBreak_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            var textBox = sender as TextBox;
+            if (textBox == null) return;
+
+            string digits = new string(textBox.Text.Where(char.IsDigit).ToArray());
+
+            if (digits.Length > 2) digits = digits.Substring(0, 2);
+
+            if (digits.Length > 0 && int.TryParse(digits, out int value) && value > 60)
+                digits = "60";
+
+            if (digits != textBox.Text)
+            {
+                int caretPos = textBox.CaretIndex;
+                textBox.Text = digits;
+                textBox.CaretIndex = Math.Min(caretPos, digits.Length);
+            }
+        }
+
         private async void OnNotifyAll(object sender, RoutedEventArgs e)
         {
             await _notificationFacade.NotifyAllAsync(
@@ -629,5 +708,179 @@ namespace WorkSched
                 $"Не прочитано: {stats.Item3}";
         }
 
+
+        private async Task CheckAIConnection()
+        {
+            try
+            {
+                if (_aiClient == null)
+                {
+                    txtAIConnectionStatus.Text = "⚠️ ИИ-клиент не инициализирован";
+                    txtAIConnectionStatus.Foreground = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Colors.Orange);
+                    return;
+                }
+
+                var isHealthy = await _aiClient.IsHealthyAsync();
+                if (isHealthy)
+                {
+                    txtAIConnectionStatus.Text = "✅ ИИ-сервис подключен";
+                    txtAIConnectionStatus.Foreground = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Colors.Green);
+                }
+                else
+                {
+                    txtAIConnectionStatus.Text = "⚠️ ИИ-сервис недоступен (проверьте, запущен ли python ai_service.py)";
+                    txtAIConnectionStatus.Foreground = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Colors.Red);
+                }
+            }
+            catch (Exception ex)
+            {
+                txtAIConnectionStatus.Text = $"❌ Ошибка подключения: {ex.Message}";
+                txtAIConnectionStatus.Foreground = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Colors.Red);
+            }
+        }
+
+        private async void OnPredictAll(object sender, RoutedEventArgs e)
+        {
+            var yearItem = cbPredictionYear.SelectedItem as ComboBoxItem;
+            if (yearItem == null)
+            {
+                txtPredictionSummary.Text = "⚠️ Выберите год прогноза";
+                return;
+            }
+
+            int year = int.Parse(yearItem.Content.ToString());
+
+            txtPredictionSummary.Text = "⏳ Загрузка прогнозов... Пожалуйста, подождите.";
+
+            try
+            {
+                if (!await _aiClient.IsHealthyAsync())
+                {
+                    txtPredictionSummary.Text = "❌ ИИ-сервис недоступен. Убедитесь, что запущен python ai_service.py";
+                    return;
+                }
+
+                var employees = await GetAllEmployeesAsync();
+                var employeeIds = employees.Select(emp => emp.EmployeeId).ToList();
+
+                if (employeeIds.Count == 0)
+                {
+                    txtPredictionSummary.Text = "⚠️ Нет сотрудников для прогноза";
+                    return;
+                }
+
+                var result = await _aiClient.PredictBatchAsync(employeeIds, year);
+
+                _predictions = new List<PredictionViewModel>();
+                foreach (var pred in result.results)
+                {
+                    var employee = employees.FirstOrDefault(emp => emp.EmployeeId == pred.employee_id);
+                    _predictions.Add(new PredictionViewModel
+                    {
+                        EmployeeId = pred.employee_id,
+                        FullName = employee?.FullName ?? "Неизвестно",
+                        Department = employee?.Department ?? "",
+                        PredictedVacationDays = pred.predicted_vacation_days,
+                        PredictedSickDays = pred.predicted_sick_days,
+                        PredictedTotalDays = pred.predicted_total_days,
+                        RiskCategory = pred.risk_category,
+                        RiskScore = pred.risk_score,
+                        RecommendationsText = string.Join("; ", pred.recommendations)
+                    });
+                }
+
+                gridPredictions.ItemsSource = _predictions;
+
+                var highRisk = _predictions.Count(p => p.RiskCategory == "Высокий");
+                var mediumRisk = _predictions.Count(p => p.RiskCategory == "Средний");
+                var lowRisk = _predictions.Count(p => p.RiskCategory == "Низкий");
+                var avgDays = _predictions.Count > 0 ? _predictions.Average(p => p.PredictedTotalDays) : 0;
+                var totalDays = _predictions.Sum(p => p.PredictedTotalDays);
+
+                txtPredictionSummary.Text =
+                    $"ПРОГНОЗ НА {year} ГОД\n" +
+                    $"Всего сотрудников: {_predictions.Count}\n" +
+                    $"Высокий риск (>15 дней): {highRisk} чел.\n" +
+                    $"🟠 Средний риск (8-15 дней): {mediumRisk} чел.\n" +
+                    $"🟢 Низкий риск (<8 дней): {lowRisk} чел.\n" +
+                    $"Среднее количество дней отсутствия: {avgDays:F1} дней\n" +
+                    $"Общая нагрузка на год: {totalDays:F0} человеко-дней\n" +
+                    $"💡 Рекомендация: {(highRisk > 5 ? "Требуется найм временного персонала" : "Ситуация стабильна")}";
+            }
+            catch (Exception ex)
+            {
+                txtPredictionSummary.Text = $"❌ Ошибка: {ex.Message}";
+                MessageBox.Show($"Ошибка при получении прогнозов: {ex.Message}", "Ошибка",
+                                MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private async Task<List<EmployeeInfo>> GetAllEmployeesAsync()
+        {
+            var cs = GetCS();
+            var employees = new List<EmployeeInfo>();
+
+            try
+            {
+                using (var conn = new SqlConnection(cs))
+                using (var cmd = new SqlCommand(@"
+                    SELECT e.EmployeeId, e.FullName, ISNULL(d.Name, 'Нет отдела') as Department
+                    FROM Employees e
+                    LEFT JOIN Departments d ON d.DepartmentId = e.DepartmentId
+                    WHERE e.Role != 'Admin'
+                    ORDER BY e.FullName", conn))
+                {
+                    await conn.OpenAsync();
+                    using (var reader = await cmd.ExecuteReaderAsync())
+                    {
+                        while (await reader.ReadAsync())
+                        {
+                            employees.Add(new EmployeeInfo
+                            {
+                                EmployeeId = reader.GetInt32(0),
+                                FullName = reader.GetString(1),
+                                Department = reader.GetString(2)
+                            });
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Ошибка загрузки сотрудников: {ex.Message}", "Ошибка",
+                                MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+
+            return employees;
+        }
+
+        private async void OnRefreshPredictions(object sender, RoutedEventArgs e)
+        {
+            await CheckAIConnection();
+            if (_predictions != null && _predictions.Any())
+            {
+                OnPredictAll(sender, new RoutedEventArgs());
+            }
+        }
+    }
+
+    public class EmployeeInfo
+    {
+        public int EmployeeId { get; set; }
+        public string FullName { get; set; }
+        public string Department { get; set; }
+    }
+
+    public class PredictionViewModel
+    {
+        public int EmployeeId { get; set; }
+        public string FullName { get; set; }
+        public string Department { get; set; }
+        public float PredictedVacationDays { get; set; }
+        public float PredictedSickDays { get; set; }
+        public float PredictedTotalDays { get; set; }
+        public string RiskCategory { get; set; }
+        public float RiskScore { get; set; }
+        public string RecommendationsText { get; set; }
     }
 }

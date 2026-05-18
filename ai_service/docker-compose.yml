@@ -1,0 +1,11 @@
+version: '3.8'
+
+services:
+  work-sched-ai:
+    build: .
+    container_name: work-sched-ai
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./models:/app/models
+    restart: unless-stopped
